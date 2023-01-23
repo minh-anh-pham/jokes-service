@@ -9,11 +9,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
 app.get('/jokes', async (req, res, next) => {
-  async () => {
-    await sequelize.sync({ force: true }); // recreate db
-    await seed();
-  }
-
   try {
     // TODO - filter the jokes by tags and content
     let where = {};
@@ -31,6 +26,32 @@ app.get('/jokes', async (req, res, next) => {
     const jokes = await Joke.findAll({ where });
 
     res.json(jokes);
+
+  } catch (error) {
+    console.error(error);
+    next(error)
+  }
+});
+
+app.post('/jokes', async (req, res, next) => {
+  try {
+    let where = {};
+
+    const {content, tags} = req.query;
+
+    if (content) {
+      where.joke = content;
+    }
+
+    if (tags) {
+      where.tags = tags;
+    }
+
+    const newJoke = await Joke.create({where});
+
+    const findNewJoke = await Joke.findAll({where});
+
+    res.json(findNewJoke);
 
   } catch (error) {
     console.error(error);
